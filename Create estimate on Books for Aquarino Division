@@ -1,0 +1,425 @@
+quote_data = zoho.crm.getRecordById("Quotes",quoteid);
+//--------*-----------Quote details*----------------------------------------
+Quote_Owner_EmailId = quote_data.getJSON("Owner").get("email");
+terms_conditions = ifnull(quote_data.get("Terms_and_Conditions"),"");
+if(quote_data.get("Contact_Name") != null)
+{
+	contactid = quote_data.get("Contact_Name").getJSON("id");
+	contactsdetail = zoho.crm.getRecordById("Contacts",contactid);
+	emaiid_contact = ifnull(contactsdetail.get("Email"),"");
+}
+Billing_Country1 = ifnull(quote_data.get("Billing_Country"),"");
+Billing_Street1 = ifnull(quote_data.get("Billing_Street"),"");
+Billing_City1 = ifnull(quote_data.get("Billing_City"),"");
+Billing_State1 = ifnull(quote_data.get("Billing_State"),"");
+Billing_Zip_Code1 = ifnull(quote_data.get("Billing_Zip_postal_code"),"");
+new_billing_code_val = ifnull(quote_data.get("Billing_Code"),"");
+new_shipping_Code_val = ifnull(quote_data.get("Shipping_Code"),"");
+Shipping_Country1 = ifnull(quote_data.get("Shipping_Country"),"");
+Shipping_Street1 = ifnull(quote_data.get("Shipping_Street"),"");
+Shipping_City1 = ifnull(quote_data.get("Shipping_City"),"");
+Shipping_State1 = ifnull(quote_data.get("Shipping_State"),"");
+Shipping_Zip_Code1 = ifnull(quote_data.get("Shipping_Postal_Code"),"");
+//--------*-----------Quote details*----------------------------------------
+//----------------*-------------Map for Addesses------------*------------------------
+billingMapQuote = Map();
+billingMapQuote.put("country",Billing_Country1);
+billingMapQuote.put("state",Billing_State1);
+billingMapQuote.put("zip",new_billing_code_val);
+billingMapQuote.put("address",Billing_Street1);
+billingMapQuote.put("city",Billing_City1);
+ShippingMapQuote = Map();
+ShippingMapQuote.put("country",Shipping_Country1);
+ShippingMapQuote.put("state",Shipping_State1);
+ShippingMapQuote.put("zip",new_shipping_Code_val);
+ShippingMapQuote.put("address",Shipping_Street1);
+ShippingMapQuote.put("city",Shipping_City1);
+//----------------*-------------Map for Addesses------------*------------------------
+//----------* Get the Line Tax value ..It shows in  the Line Item Table in quote which include on Total 
+line_tax = quote_data.getJSON("$line_tax");
+quote_tax_value = quote_data.getJSON("Tax");
+authmap = Map();
+tax_name_state = "";
+if(quote_tax_value != 0)
+{
+	// This code works when the taxes are includes in Quotes than we need to add Taxes with Percentage  in Estimates
+	for each  line_data in line_tax
+	{
+		tax_name_state = line_data.get("name");
+		tax_value = line_data.get("value");
+	}
+	//******** get The Taxes list from the Zoho Books*************// 
+	authmap.put("client_id","1000.TTBCZAWKXWNVXVB29NOV39BXNVPG5S");
+	authmap.put("client_secret","64332bf13b3dd213a20099d4f6d89bc7bc49f9831c");
+	authmap.put("redirect_uri","https://mailchimp.com/");
+	authmap.put("grant_type","refresh_token");
+	authmap.put("refresh_token","1000.da9d1dcd0567e6a3f4cbeda6c0f736e5.1ecfcbb21e468ae30154039792452f42");
+	result = invokeurl
+	[
+		url :"https://accounts.zoho.com/oauth/v2/token"
+		type :POST
+		parameters:authmap
+	];
+	access_token = result.get("access_token");
+	authmap1 = Map();
+	authmap1.put("Authorization","Zoho-oauthtoken " + access_token);
+	taxesdata = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/settings/taxes?organization_id=724571659"
+		type :GET
+		headers:authmap1
+	];
+	data_taxes = taxesdata.get("taxes");
+	//******** get The Taxes list from the Zoho Books*************// 
+	for each  i in data_taxes
+	{
+		tax_name = i.get("tax_name");
+		if(tax_name == tax_name_state)
+		{
+			tax_id = i.get("tax_id");
+			// get the Taxes Id from zoho Books so we can add Tax in Estimate
+			tax_percentage = i.get("tax_percentage");
+			// get the Taxes Percentage from zoho Books so we can add Percentage in Estimate
+		}
+	}
+}
+else
+{
+	// This code works when there are no tax includes in Quotes than we need to add Tax Exemption in Estimates
+	// get the Tax Exempt id in the Zoho Books
+	authmap.put("client_id","1000.TTBCZAWKXWNVXVB29NOV39BXNVPG5S");
+	authmap.put("client_secret","64332bf13b3dd213a20099d4f6d89bc7bc49f9831c");
+	authmap.put("redirect_uri","https://mailchimp.com/");
+	authmap.put("grant_type","refresh_token");
+	authmap.put("refresh_token","1000.da9d1dcd0567e6a3f4cbeda6c0f736e5.1ecfcbb21e468ae30154039792452f42");
+	result = invokeurl
+	[
+		url :"https://accounts.zoho.com/oauth/v2/token"
+		type :POST
+		parameters:authmap
+	];
+	access_token = result.get("access_token");
+	authmap1 = Map();
+	authmap1.put("Authorization","Zoho-oauthtoken " + access_token);
+	taxesexemptiondata = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/settings/taxexemptions?organization_id=724571659"
+		type :GET
+		headers:authmap1
+	];
+	taxemp_values = taxesexemptiondata.get("tax_exemptions");
+	for each  taxemp_data in taxemp_values
+	{
+		id_taxexempt_value = taxemp_data.get("tax_exemption_id");
+		// get tax exempt id from Books
+	}
+}
+allocation_number = ifnull(quote_data.getJSON("Allocation_Number"),"");
+Products_info = ifnull(quote_data.getJson("Product_Details"),"");
+total_discount = ifnull(quote_data.getJson("Discount"),0.0);
+update_td = "-" + total_discount;
+deposite_amount = ifnull(quote_data.get("Deposit"),"");
+lineitems = list();
+discount_value = 0;
+// Line Items for Estimates in Zoho Books 
+for each  s in Products_info
+{
+	pro = Map();
+	pro.put("zcrm_product_id",s.get("product").get("id"));
+	pro.put("quantity",s.get("quantity"));
+	pro.put("rate",s.get("list_price"));
+	if(s.get("product").get("Product_Code") == null)
+	{
+		pro.put("name",s.get("product").get("name"));
+		pro.put("description",ifnull(s.get("product_description"),""));
+	}
+	else
+	{
+		pro.put("name",s.get("product").get("Product_Code"));
+		pro.put("description",ifnull(s.get("product_description"),""));
+		//pro.put("description",s.get("product").get("name"));
+	}
+	list_discount = ifnull(s.get("Discount"),0);
+	pro.put("discount",list_discount);
+	pro.put("discount_amount",list_discount);
+	pro.put("discount_type","item_level");
+	if(tax_name_state != "")
+	{
+		pro.put("tax_id",tax_id);
+		pro.put("tax_name",tax_name_state);
+		pro.put("tax_percentage",tax_percentage);
+	}
+	else
+	{
+		pro.put("tax_exemption_id",id_taxexempt_value);
+	}
+	lineitems.add(pro);
+}
+// Get the Estimate Id from Zoho CRM as Estimate are creating in Zoho Books 
+books_id = quote_data.getJSON("Books_Id");
+EstimateBooks = true;
+// This block of code  runs when there no Estimate is create in respective of Quotes  and we check on the basis of Books Id
+if(books_id == null)
+{
+	search_estimate = {"reference_number":allocation_number};
+	serach_estimate_present = zoho.books.getRecords("Estimates","724571659",search_estimate);
+	checked_estimate = serach_estimate_present.get("estimates") == {};
+	info checked_estimate;
+	if(checked_estimate == false)
+	{
+		info "line already created " + serach_estimate_present;
+		estimates_no_update = serach_estimate_present.get("estimates").getJSON("estimate_number");
+		estimate_id_update = serach_estimate_present.get("estimates").getJSON("estimate_id");
+		updateQuoteNew = Map();
+		updateQuoteNew.put("Estimate_Number",estimates_no_update);
+		updateQuoteNew.put("Books_Id",estimate_id_update);
+		updateval = zoho.crm.updateRecord("Quotes",quoteid,updateQuoteNew);
+		info updateval;
+	}
+	else
+	{
+		// if match found - Update else - create
+		account_id = ifnull(quote_data.getJSON("Account_Name").get("id"),"");
+		account_name = ifnull(quote_data.getJSON("Account_Name").get("name"),"");
+		Search = {"contact_name":account_name};
+		get_value = zoho.books.getRecords("Contacts","724571659",Search);
+		prsent_value = get_value.get("contacts").isEmpty();
+		//info prsent_value;
+		if(prsent_value == true)
+		{
+			info "contact not present";
+			getaccoountdetail = zoho.crm.getRecordById("Accounts",account_id);
+			account_name = getaccoountdetail.get("Account_Name");
+			email = ifnull(getaccoountdetail.get("Email"),"");
+			account_currency = getaccoountdetail.get("Currency");
+			currencies_estimate = invokeurl
+			[
+				url :"https://books.zoho.com/api/v3/settings/currencies?organization_id=724571659"
+				type :GET
+				headers:authmap1
+			];
+			currency_detail = currencies_estimate.get("currencies");
+			for each  data in currency_detail
+			{
+				currency_code_val = data.get("currency_code");
+				if(account_currency == currency_code_val)
+				{
+					cuurency_id_value = data.get("currency_id");
+				}
+			}
+			Preferred_Language = ifnull(getaccoountdetail.get("Preferred_Language"),"");
+			if(Preferred_Language == "français")
+			{
+				pre_lang = "fr";
+			}
+			else
+			{
+				pre_lang = "en";
+			}
+			Website = ifnull(getaccoountdetail.get("Website"),"");
+			//************************ ---- Add Billing and shipping Address for the Customer ******************-------------------//
+			Billing_Country = ifnull(getaccoountdetail.get("Billing_Country"),"");
+			Billing_Street = ifnull(getaccoountdetail.get("Billing_Street"),"");
+			Billing_City = ifnull(getaccoountdetail.get("Billing_City"),"");
+			Billing_State = ifnull(getaccoountdetail.get("Billing_State"),"");
+			Billing_Zip_Code = ifnull(getaccoountdetail.get("Billing_Zip_Code"),"");
+			Shipping_Country = ifnull(getaccoountdetail.get("Shipping_Country"),"");
+			Shipping_Street = ifnull(getaccoountdetail.get("Shipping_Street"),"");
+			Shipping_City = ifnull(getaccoountdetail.get("Shipping_City"),"");
+			Shipping_State = ifnull(getaccoountdetail.get("Shipping_State"),"");
+			Shipping_Zip_Code = ifnull(getaccoountdetail.get("Shipping_Zip_Code"),"");
+			billingMap = Map();
+			billingMap.put("country",Billing_Country);
+			billingMap.put("state",Billing_State);
+			billingMap.put("zip",Billing_Zip_Code);
+			billingMap.put("address",Billing_Street);
+			billingMap.put("city",Billing_City);
+			ShippingMap = Map();
+			ShippingMap.put("country",Shipping_Country);
+			ShippingMap.put("state",Shipping_State);
+			ShippingMap.put("zip",Shipping_Zip_Code);
+			ShippingMap.put("address",Shipping_Street);
+			ShippingMap.put("city",Shipping_City);
+			contact_map = Map();
+			getcontact = zoho.crm.getRelatedRecords("Contacts","Accounts",account_id);
+			//info getcontact;
+			colist = List();
+			if(getcontact.isEmpty() == false)
+			{
+				for each  data in getcontact
+				{
+					Email = data.get("Email");
+					First_Name = data.get("First_Name");
+					Last_Name = data.get("Last_Name");
+					con_Map = Map();
+					con_Map.put("first_name",First_Name);
+					con_Map.put("last_name",Last_Name);
+					con_Map.put("email",Email);
+					con_Map.put("is_primary_contact",True);
+					colist.add(con_Map);
+				}
+			}
+			contact_map.put("contact_name",account_name);
+			contact_map.put("email",email);
+			contact_map.put("website",Website);
+			contact_map.put("billing_address",billingMap);
+			contact_map.put("shipping_address",ShippingMap);
+			contact_map.put("shipping_address",ShippingMap);
+			contact_map.put("language_code",pre_lang);
+			contact_map.put("contact_persons",colist);
+			contact_map.put("currency_id",cuurency_id_value);
+			// 		contact_map = Map();
+			// 		contact_map.put("contact_name",account_name);
+			// 		contact_map.put("Test",account_id);
+			contact_create = zoho.books.createRecord("Contacts","724571659",contact_map);
+			info contact_create;
+			Books_contact_id = contact_create.get("contact").get("contact_id");
+			account_map = Map();
+			account_map.put("Customer_Id",Books_contact_id);
+			crmvalues = zoho.crm.updateRecord("Accounts",account_id,account_map);
+		}
+		else
+		{
+			contact_info = get_value.getJSON("contacts");
+			Books_contact_id = contact_info.getJSON("contact_id");
+			info Books_contact_id;
+			info "contact present";
+		}
+		Custom_Field = list();
+		new_custom_field = Map();
+		new_deposit_field = Map();
+		new_quote_owner_emaild = Map();
+		new_custom_field.put("customfield_id","2364800000000188001");
+		new_custom_field.put("value","Aquarino");
+		new_deposit_field.put("customfield_id","2364800000000386029");
+		new_deposit_field.put("value",deposite_amount);
+		new_quote_owner_emaild.put("customfield_id","2364800000003429638");
+		new_quote_owner_emaild.put("value",Quote_Owner_EmailId);
+		Custom_Field.add(new_custom_field);
+		Custom_Field.add(new_deposit_field);
+		Custom_Field.add(new_quote_owner_emaild);
+		Estimate = Map();
+		Estimate.put("customer_id",Books_contact_id);
+		Estimate.put("line_items",lineitems);
+		Estimate.put("reference_number",allocation_number);
+		Estimate.put("custom_fields",Custom_Field);
+		Estimate.put("discount_type","item_level");
+		Estimate.put("terms",terms_conditions);
+		if(tax_name_state == "")
+		{
+			Estimate.put("tax_exemption_id",id_taxexempt_value);
+		}
+		else
+		{
+			Estimate.put("tax_exemption_id","");
+			Estimate.put("tax_id",tax_id);
+			Estimate.put("tax_name",tax_name_state);
+			Estimate.put("tax_percentage",tax_percentage);
+		}
+		Create_Estimate = zoho.books.createRecord("Estimates","724571659",Estimate);
+		info Create_Estimate;
+		estimate_id = Create_Estimate.get("estimate").get("estimate_id");
+		// get Estimate id after creating Estimates in Zoho Books 
+		estimate_number = Create_Estimate.getJSON("estimate").getJSON("estimate_number");
+		// get Etimate umber after creating Estimates in Zoho Books 
+		//******************* Update Estmate Id and Estimate Numbrt in the CRM's Quotes *************************8//
+		update_books_id = Map();
+		update_books_id.put("Books_Id",estimate_id);
+		update_books_id.put("Estimate_Number",estimate_number);
+		quote_up = zoho.crm.updateRecord("Quotes",quoteid,update_books_id);
+		info "line 325 " + quote_up;
+		//Add Shipping Address in the Estimates
+		updateMap = Map();
+		updateMap.put("JSONString",ShippingMapQuote);
+		shippingData = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/estimates/" + estimate_id + "/address/shipping?organization_id=724571659"
+			type :PUT
+			parameters:updateMap
+			headers:authmap1
+		];
+		//Add Billing Address in the Esyimates 
+		updateBillingAddress = Map();
+		updateBillingAddress.put("JSONString",billingMapQuote);
+		billingupdate_data = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/estimates/" + books_id + "/address/billing?organization_id=724571659"
+			type :PUT
+			parameters:updateBillingAddress
+			headers:authmap1
+		];
+	}
+}
+else
+{
+	// This code runs when Estimate is already created on that Quotes so need to update Estimate 
+	booksdata = zoho.books.getRecordsByID("Estimates","724571659",books_id);
+	// get the estimate Data based on Estmate Id 
+	estimate_id = booksdata.get("estimate").get("estimate_id");
+	estimate_number = booksdata.getJSON("estimate").getJSON("estimate_number");
+	update_books_id = Map();
+	update_books_id.put("Books_Id",estimate_id);
+	update_books_id.put("Estimate_Number",estimate_number);
+	quote_update = zoho.crm.updateRecord("Quotes",quoteid,update_books_id);
+	Estimate = Map();
+	//*************-------Prepare data for Custom field for Estimated--------------*************//
+	Custom_Field = list();
+	new_custom_field = Map();
+	new_deposit_field = Map();
+	new_quote_owner_emaild = Map();
+	new_custom_field.put("customfield_id","2364800000000188001");
+	new_custom_field.put("value","Aquarino");
+	new_deposit_field.put("customfield_id","2364800000000386029");
+	new_deposit_field.put("value",deposite_amount);
+	new_quote_owner_emaild.put("customfield_id","2364800000003429638");
+	new_quote_owner_emaild.put("value",Quote_Owner_EmailId);
+	Custom_Field.add(new_custom_field);
+	Custom_Field.add(new_deposit_field);
+	Custom_Field.add(new_quote_owner_emaild);
+	Estimate.put("line_items",lineitems);
+	Estimate.put("cf_oranization_type","Aquarino");
+	Estimate.put("reference_number",allocation_number);
+	Estimate.put("custom_fields",Custom_Field);
+	Estimate.put("discount_type","item_level");
+	Estimate.put("accept_retainer",true);
+	Estimate.put("retainer_percentage","20.00");
+	Estimate.put("terms",terms_conditions);
+	//	Estimate.put("adjustment",update_td);
+	//	Estimate.put("is_discount_before_tax",true);
+	//	Estimate.put("adjustment_description","Discount");
+	//Estimate.put("discount_type","item_level");
+	if(tax_name_state == "")
+	{
+		//***********---------if none of taxes added in the Quotes------------****************//
+		Estimate.put("tax_exemption_id",id_taxexempt_value);
+	}
+	else
+	{
+		//***********---------if taxes added in the Quotes------------****************//
+		Estimate.put("tax_exemption_id","");
+		Estimate.put("tax_id",tax_id);
+		Estimate.put("tax_name",tax_name_state);
+		Estimate.put("tax_percentage",tax_percentage);
+	}
+	update_estimae = zoho.books.updateRecord("Estimates","724571659",books_id,Estimate);
+	updateMap = Map();
+	updateMap.put("JSONString",ShippingMapQuote);
+	// Update shipping Data in the Exiisting Estimates 
+	shippingData = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/estimates/" + books_id + "/address/shipping?organization_id=724571659"
+		type :PUT
+		parameters:updateMap
+		headers:authmap1
+	];
+	updateBillingAddress = Map();
+	updateBillingAddress.put("JSONString",billingMapQuote);
+	// Update Billing Address Data in the Exiisting Estimates 
+	shippingData = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/estimates/" + books_id + "/address/billing?organization_id=724571659"
+		type :PUT
+		parameters:updateBillingAddress
+		headers:authmap1
+	];
+}
