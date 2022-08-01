@@ -1,0 +1,48 @@
+//quotedata = zoho.crm.getRecordById("Quotes",quoteid);
+//info quotedata;
+// aaline_tax = {"Quebec":{"percentage":14.975,"name":"Quebec","id":"4545217000002604001"},"Ontario":{"percentage":13,"name":"Ontario","id":"4545217000002604002"},"New York":{"percentage":8.875,"name":"New York","id":"4545217000002604003"},"Connecticut":{"percentage":6.35,"name":"Connecticut","id":"4545217000002604004"},"New Jersey":{"percentage":6.625,"name":"New Jersey","id":"4545217000002531473"},"Vermont":{"percentage":6,"name":"Vermont","id":"4545217000002531475"},"BC":{"percentage":12,"name":"BC","id":"4545217000002604009"},"BC1":{"percentage":5,"name":"BC1","id":"4545217000002604011"},"NB":{"percentage":15,"name":"NB","id":"4545217000002604013"},"NF":{"percentage":15,"name":"NF","id":"4545217000002604015"},"NS":{"percentage":15,"name":"NS","id":"4545217000002604017"},"AB":{"percentage":5,"name":"AB","id":"4545217000002604019"},"MB":{"percentage":5,"name":"MB","id":"4545217000007085737"}};
+// aaline_tax = {"Quebec":{"percentage":14.975,"name":"Quebec","id":"4545217000002604001"},"Ontario":{"percentage":13,"name":"Ontario","id":"4545217000002604002"},"New York":{"percentage": 8.875,"name": "New York","id": "4545217000002604003"},"Connecticut":{"percentage": 6.35,"name": "Connecticut","id": "4545217000002604004"},"New Jersey":{"percentage": 6.625,"name": "New Jersey","id": "4545217000002531473"},"Vermont":{"percentage": 6,"name": "Vermont","id": "4545217000002531475"},"BC":{
+// "percentage": 12,"name":"BC","id": "4545217000002604009"},"BC1": {"percentage": 5,"name": "BC1","id": "4545217000002604011"},"NB": {"percentage": 15,"name": "NB","id": "4545217000002604013"},"NF" {"percentage": 15,"name": "NF","id": "4545217000002604015"},"NS": {"percentage": 15,"name": "NS","id": "4545217000002604017"},"AB": {"percentage": 5,"name": "AB","id": "4545217000002604019"},"MB": {"percentage": 5,"name": "MB","id": "4545217000007085737"}};
+// accountid = quotedata.get("Account_Name").get("id");
+// account_details = zoho.crm.getRecordById("Accounts",accountid);
+// state = account_details.get("Billing_State");
+// if(state != null)
+// {
+// 	getd = aaline_tax.containsKey(state);
+// 	if(getd == true)
+// 	{
+// 		data_tax = aaline_tax.get(state);
+// 		percentage = data_tax.get("percentage");
+// 		name = data_tax.get("name");
+// 		id = data_tax.get("id");
+// 	}
+// 	search_state = zoho.crm.searchRecords("State_Tax","(Name:equals:" + state + ")");
+// 	//info search_state;
+// 	state_tax_value = search_state.isEmpty();
+// 	if(state_tax_value == false)
+// 	{
+info "state found";
+// 		tax_value = search_state.getJSON("Tax");
+// 		state_id = search_state.getJSON("id");
+// 		name = search_state.getJSON("name");
+//info tax_value;
+// 	lin_em_list = List();
+// 	line_item_tax = Map();
+// 	line_item_tax.put("percentage",percentage);
+// 	line_item_tax.put("id",id);
+// 	line_item_tax.put("name",name);
+// 	lin_em_list.add(line_item_tax);
+// 	quotemap = Map();
+// 	quotemap.put("$line_tax",lin_em_list);
+// 	info quotemap;
+// 	qo = zoho.crm.updateRecord("Quotes",quoteid,quotemap);
+// 	info qo;
+// 	}
+// 	else
+// 	{
+// 		info "not available";
+// 	}
+//}
+// // // 	if(serach_product.isEmpty() == true)
+quotedata = zoho.crm.getRecordById("Quotes",quoteid);
+info quotedata;
