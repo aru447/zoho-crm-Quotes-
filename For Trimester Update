@@ -1,0 +1,43 @@
+quotesData = zoho.crm.getRecordById("Quotes",qId);
+info quotesData;
+Created_Time = quotesData.get("Date_Quoted");
+info Created_Time;
+if(Created_Time != null)
+{
+	createdMonth = Created_Time.getMonth();
+	info createdMonth;
+	createdYear = Created_Time.getYear();
+	info createdYear;
+	updatemap = Map();
+	if(createdMonth == 10 || createdMonth == 11 || createdMonth == 12)
+	{
+		newyear = Created_Time.addYear(1);
+		newyear = newyear.getYear();
+		updatemap.put("Years",createdYear + "-" + newyear);
+		updatemap.put("Trimester","Oct - Jan");
+	}
+	if(createdMonth == 1)
+	{
+		newyear = Created_Time.subYear(1);
+		newyear = newyear.getYear();
+		updatemap.put("Years",newyear + "-" + createdYear);
+		updatemap.put("Trimester","Oct - Jan");
+	}
+	if(createdMonth == 2 || createdMonth == 3 || createdMonth == 4 || createdMonth == 5)
+	{
+		updatemap.put("Years",createdYear + "-" + createdYear);
+		updatemap.put("Trimester","Feb - May");
+	}
+	if(createdMonth == 6 || createdMonth == 7 || createdMonth == 8 || createdMonth == 9)
+	{
+		updatemap.put("Years",createdYear + "-" + createdYear);
+		updatemap.put("Trimester","Feb - May");
+	}
+	info updatemap;
+	res = zoho.crm.updateRecord("Quotes",qId,updatemap);
+	info res;
+}
+else
+{
+	info "Date Quotes field is empty";
+}
