@@ -1,0 +1,88 @@
+quote_data = zoho.crm.getRecordById("Quotes",quoteid);
+//info quote_data;
+allocation_number = ifnull(quote_data.getJSON("Allocation_Number"),"");
+Products_info = ifnull(quote_data.getJson("Product_Details"),"");
+lineitems = list();
+for each  s in Products_info
+{
+	pro = Map();
+	//pro.put("name",s.get("product").get("name"));
+	pro.put("zcrm_product_id",s.get("product").get("id"));
+	pro.put("quantity",s.get("quantity"));
+	pro.put("rate",s.get("list_price"));
+	if(s.get("product").get("Product_Code") == null)
+	{
+		pro.put("name",s.get("product").get("name"));
+		pro.put("description",s.get("product_description"));
+	}
+	else
+	{
+		pro.put("name",s.get("product").get("Product_Code"));
+		pro.put("description",s.get("product").get("name"));
+	}
+	//pro.put("name",s.get("product").get("Product_Code"));
+	//pro.put("description",s.get("product").get("name"));
+	lineitems.add(pro);
+}
+books_id = quote_data.getJSON("Books_Id");
+if(books_id == null)
+{
+	account_id = ifnull(quote_data.getJSON("Account_Name").get("id"),"");
+	account_name = ifnull(quote_data.getJSON("Account_Name").get("name"),"");
+	info account_name;
+	Search = {"contact_name":account_name};
+	get_value = zoho.books.getRecords("Contacts","720568586",Search);
+	info get_value;
+	prsent_value = get_value.get("contacts").isEmpty();
+	info prsent_value;
+	if(prsent_value == true)
+	{
+		info "contact not present";
+		contact_map = Map();
+		contact_map.put("contact_name",account_name);
+		contact_map.put("Test",account_id);
+		contact_create = zoho.books.createRecord("Contacts","720568586",contact_map);
+		Books_contact_id = contact_create.get("contact").get("contact_id");
+		info Books_contact_id;
+	}
+	else
+	{
+		contact_info = get_value.getJSON("contacts");
+		Books_contact_id = contact_info.getJSON("contact_id");
+		info Books_contact_id;
+		info "contact present";
+	}
+	// info contact_create;
+	Custom_Field = list();
+	Estimate = Map();
+	Estimate.put("customer_id",Books_contact_id);
+	Estimate.put("line_items",lineitems);
+	Estimate.put("reference_number",allocation_number);
+	//Estimate.put("custom_fields",Custom_Field);
+	Create_Estimate = zoho.books.createRecord("Estimates","720568586",Estimate);
+	info Create_Estimate;
+	estimate_id = Create_Estimate.get("estimate").get("estimate_id");
+	estimate_number = Create_Estimate.getJSON("estimate").getJSON("estimate_number");
+	info estimate_id;
+	update_books_id = Map();
+	update_books_id.put("Books_Id",estimate_id);
+	update_books_id.put("Estimate_Number",estimate_number);
+	zoho.crm.updateRecord("Quotes",quoteid,update_books_id);
+}
+else
+{
+	booksdata = zoho.books.getRecordsByID("Estimates","724571659",books_id);
+	estimate_id = booksdata.get("estimate").get("estimate_id");
+	estimate_number = booksdata.getJSON("estimate").getJSON("estimate_number");
+	info estimate_number;
+	update_books_id = Map();
+	update_books_id.put("Books_Id",estimate_id);
+	update_books_id.put("Estimate_Number",estimate_number);
+	quote_update = zoho.crm.updateRecord("Quotes",quoteid,update_books_id);
+	info quote_update;
+	Estimate = Map();
+	//Estimate.put("customer_id",Books_contact_id);
+	Estimate.put("line_items",lineitems);
+	update_estimae = zoho.books.updateRecord("Estimates","720568586",books_id,Estimate);
+	info update_estimae;
+}
