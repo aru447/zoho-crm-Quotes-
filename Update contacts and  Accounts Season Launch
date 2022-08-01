@@ -1,0 +1,301 @@
+getrecord = zoho.crm.getRecordById("Season_Launch",id);
+getfname = getrecord.get("Name");
+getlname = getrecord.get("Last_Name");
+getemail1 = getrecord.get("Email");
+getvalueofUltimate_parent_account = getrecord.getjson("Ultimate_parent_account");
+getcontactid = getrecord.get("Contact_ID");
+getaccountid = getrecord.get("Account_ID");
+info getvalueofUltimate_parent_account;
+getphone = getrecord.getjson("Phone");
+gettypeofcompany = getrecord.get("Type_of_company");
+getMailingStreet = getrecord.getjson("Street_Address");
+getMailingCity = getrecord.getjson("City");
+getMailingState = getrecord.getjson("State_Region_Province");
+getMailingZip = getrecord.getjson("Postal_Zip_Code");
+getMailingCountry = getrecord.getjson("Country");
+getcompayname = getrecord.getjson("Company_Name");
+FirstName = "";
+LastName = "";
+if(getlname == null)
+{
+	watchcomma = getfname.contains(",");
+	info watchcomma;
+	if(watchcomma == true)
+	{
+		FirstName = getfname.getPrefix(",");
+		info getfname;
+		LastName = getfname.getSuffix(",");
+		info getlname;
+	}
+	else
+	{
+		LastName = getfname;
+		FirstName = getfname;
+	}
+}
+else
+{
+	LastName = getlname;
+	FirstName = getfname;
+}
+info FirstName;
+info LastName;
+response = zoho.crm.searchRecords("Contacts","Email:equals:" + getemail1);
+getcontactsize = response.size();
+reporsenew = zoho.crm.searchRecords("Accounts","Account_Name:equals:" + getvalueofUltimate_parent_account);
+getmyid = reporsenew.getjson("id");
+if(getcontactsize != 0)
+{
+	info " update code  ";
+	getidcontact = response.getjson("id");
+	getcontactaccountname = response.getjson("Account_Name");
+	getname = getcontactaccountname.get("name");
+	mymap = Map();
+	mymap.put("season_launch",true);
+	mymap.put("Email",getemail1);
+	mymap.put("Phone",getphone);
+	mymap.put("Mailing_Street",getMailingStreet);
+	mymap.put("Mailing_City",getMailingCity);
+	mymap.put("Mailing_State",getMailingState);
+	mymap.put("Mailing_Zip",getMailingZip);
+	mymap.put("Mailing_Country",getMailingCountry);
+	finalupdate = zoho.crm.updateRecord("Contacts",getidcontact,mymap);
+	getidcontactupdate = finalupdate.get("id");
+	// account ----------------;
+	contactget = zoho.crm.getRecordById("contacts",getidcontact);
+	Accountname = contactget.get("Account_Name");
+	Accountname_id = Accountname.get("id");
+	get_Account_data = zoho.crm.getRecordById("Accounts",Accountname_id);
+	get_account_filed = get_Account_data.get("Ultimate_Parent_Account");
+	if(get_account_filed == Null)
+	{
+		mymap1 = Map();
+		mymap1.put("Ultimate_Parent_Account",getmyid);
+		lastupdate1 = zoho.crm.updateRecord("Accounts",Accountname_id,mymap1);
+	}
+	else
+	{
+		getuiltipaccountid = get_account_filed.get("id");
+		if(getuiltipaccountid == getmyid)
+		{
+			info " same";
+		}
+		else
+		{
+			info " perent update";
+			mymap2 = Map();
+			mymap2.put("Parent_Account",getmyid);
+			lastupdate = zoho.crm.updateRecord("Accounts",Accountname_id,mymap2);
+		}
+		// 		mymap2 = Map();
+		// 		mymap2.put("Parent_Account",getmyid);
+		// 		lastupdate = zoho.crm.updateRecord("Accounts",Accountname_id,mymap2);
+	}
+	// chnage
+	idupdatemap = Map();
+	idupdatemap.put("Contact_ID",getidcontactupdate);
+	idupdatemap.put("Account_ID",Accountname_id);
+	Contactupdate = zoho.crm.updateRecord("Season_Launch",id,idupdatemap);
+}
+else
+{
+	info " Search";
+	srarchilead = zoho.crm.searchRecords("Leads","Email:equals:" + getemail1);
+	info srarchilead;
+	getleadsize = srarchilead.size();
+	if(getleadsize != 0)
+	{
+		info " getttttttttttt";
+		getleadid = srarchilead.getjson("id");
+		getlead = zoho.crm.getRecordById("Leads",getleadid);
+		getFirst_Name = getlead.get("First_Name");
+		getlast_name = getlead.get("Last_Name");
+		getemail = getlead.get("Email");
+		gettphone = getlead.get("Phone");
+		getcompany = getlead.get("Company");
+		Type_of_lead = getlead.get("Type_of_lead");
+		Streetget = getlead.get("Street");
+		cityget = getlead.get("City");
+		Postal_Zip_Codeget = getlead.get("Zip_Code");
+		Country = getlead.get("Country");
+		stateget = getlead.get("State");
+		getFirst_Name = getfname;
+		getlast_name = getlname;
+		gettphone = getphone;
+		Type_of_lead = gettypeofcompany;
+		Streetget = getMailingStreet;
+		cityget = getMailingCity;
+		Postal_Zip_Codeget = getMailingZip;
+		Country = getMailingCountry;
+		stateget = getMailingState;
+		leadaddressmap = Map();
+		leadaddressmap.put("Street",getMailingStreet);
+		leadaddressmap.put("City",getMailingCity);
+		leadaddressmap.put("Zip_Code",Postal_Zip_Codeget);
+		leadaddressmap.put("Country",getMailingCountry);
+		leadaddressmap.put("State",getMailingState);
+		leadaddressmap.put("Phone",getphone);
+		leadaddressmap.put("Type_of_lead",gettypeofcompany);
+		leadaddressmap.put("First_Name",FirstName);
+		leadaddressmap.put("Last_Name",LastName);
+		leadaddressmap.put("season_launch",true);
+		updateaddress = zoho.crm.updateRecord("Leads",getleadid,leadaddressmap);
+		//info "  update ========== addresss " + updateaddress;
+		if(getcompany == null || getcompany == "")
+		{
+			getcompany = getcompayname;
+			info "80" + getcompany;
+			updatemymap = Map();
+			updatemymap.put("Company",getcompany);
+			updatecompany = zoho.crm.updateRecord("Leads",getleadid,updatemymap);
+			info " secound update conpany " + updatecompany;
+		}
+		getdis = getlead.get("Description");
+		////////////////////////////////////////
+		getleadowener = getlead.get("Owner");
+		info getleadowener;
+		getleadowenerid = getleadowener.get("id");
+		info getleadowenerid;
+		res = zoho.crm.getRecords("users");
+		data = res.getJSON("users");
+		for each  userloop in data
+		{
+			userid = userloop.getJSON("id");
+			info userid;
+			if(userid == getleadowenerid)
+			{
+				info "loopmyok";
+				getstatus = userloop.get("status");
+				if(getstatus == "active")
+				{
+					info " user is acitve";
+				}
+				// 166 --------------------------------------
+				else
+				{
+					updateowner = Map();
+					updateowner.put("Owner","4545217000000396130");
+					Updtaeleadowner = zoho.crm.updateRecord("Leads",getleadid,updateowner);
+					info Updtaeleadowner;
+				}
+			}
+		}
+		leadmap = Map();
+		leadmap.put("Last_Name",getlast_name);
+		leadmap.put("Phone",gettphone);
+		leadmap.put("Email",getemail1);
+		leadmap.put("Company",getcompany);
+		leadmap.put("Description",getdis);
+		convert = zoho.crm.convertLead(getleadid,leadmap);
+		info " convert it======" + convert;
+		// id accont and contact
+		getconvercontact = convert.get("Contacts");
+		getaccount = convert.get("Accounts");
+		info "getaccount convert " + getaccount;
+		mymap1 = Map();
+		mymap1.put("Ultimate_Parent_Account",getmyid);
+		lastupdate1 = zoho.crm.updateRecord("Accounts",getaccount,mymap1);
+		// 		// change  5date
+		convertmap = Map();
+		convertmap.put("Contact_ID",getconvercontact);
+		convertmap.put("Account_ID",getaccount);
+		Contactupdate = zoho.crm.updateRecord("Season_Launch",id,convertmap);
+		info " update id ======" + Contactupdate;
+	}
+	else
+	{
+		info " Create ";
+		getfirstname = getrecord.get("Name");
+		getlastname = getrecord.get("Last_Name");
+		getemail1 = getrecord.get("Email");
+		getvalueofUltimate_parent_account = getrecord.get("Ultimate_parent_account");
+		getphone = getrecord.getjson("Phone");
+		getMailingStreet = getrecord.getjson("Street_Address");
+		getMailingCity = getrecord.getjson("City");
+		getMailingState = getrecord.getjson("State_Region_Province");
+		getMailingZip = getrecord.getjson("Postal_Zip_Code");
+		getMailingCountry = getrecord.getjson("Country");
+		gettypeofcompany = getrecord.get("Type_of_company");
+		getcompayname = getrecord.getjson("Company_Name");
+		multiseclect = {"rinox"};
+		rec = multiseclect.toString(",");
+		rec = rec.replaceAll(",",";");
+		createcontactmap = Map();
+		createcontactmap.put("Email",getemail1);
+		createcontactmap.put("Last_Name",LastName);
+		createcontactmap.put("First_Name",FirstName);
+		createcontactmap.put("Phone",getphone);
+		createcontactmap.put("season_launch",true);
+		createcontactmap.put("Mailing_Street",getMailingStreet);
+		createcontactmap.put("Mailing_City",getMailingCity);
+		createcontactmap.put("Mailing_State",getMailingState);
+		createcontactmap.put("Mailing_Zip",getMailingZip);
+		createcontactmap.put("Mailing_Country",getMailingCountry);
+		createcontactmap.put("Division",{rec});
+		createcontactmap.put("Type_of_Contact",gettypeofcompany);
+		// 		createcontactmap.put("Account_Name",getcompayname);
+		createcontact = zoho.crm.createRecord("Contacts",createcontactmap);
+		info " contact cearte " + createcontact;
+		getcontactid = createcontact.get("id");
+		accInfo = zoho.crm.getRecordById("Contacts",getcontactid);
+		info "contact info";
+		info accInfo;
+		//compare and search 
+		//	241
+		accountsearchcpny = zoho.crm.searchRecords("Accounts","Account_Name:equals:" + getcompayname);
+		// 		info accountsearchcpny;
+		info "size " + accountsearchcpny.size();
+		if(accountsearchcpny.size() == 0)
+		{
+			info " create acc ";
+			contact = zoho.crm.getRecordById("Contacts",getcontactid);
+			contactId = contact.get("id");
+			account = Map();
+			account.put("Account_Name",getcompayname);
+			account.put("Phone",contact.get("Phone"));
+			account.put("Division",contact.get("Division"));
+			account.put("Preferred_Language","English");
+			account.put("Account_type_c",contact.get("Type_of_Contact"));
+			account.put("Billing_City",contact.get("Mailing_City"));
+			account.put("Billing_Code",contact.get("Mailing_Zip"));
+			account.put("Billing_Street",contact.get("Mailing_Street"));
+			account.put("Billing_State",contact.get("Mailing_State"));
+			account.put("Billing_Country",contact.get("Mailing_Country"));
+			createAccount = zoho.crm.createRecord("Accounts",account);
+			info createAccount;
+			getaccid = createAccount.get("id");
+			mylastmap = Map();
+			mylastmap.put("Account_Name",getaccid);
+			lasupdate = zoho.crm.updateRecord("Contacts",contactId,mylastmap);
+			get_Account_data = zoho.crm.getRecordById("Accounts",getaccid);
+			get_account_filed = get_Account_data.get("Ultimate_Parent_Account");
+			if(get_account_filed == Null)
+			{
+				mymap1 = Map();
+				mymap1.put("Ultimate_Parent_Account",getmyid);
+				lastupdate1 = zoho.crm.updateRecord("Accounts",getaccid,mymap1);
+			}
+			else
+			{
+				mymap2 = Map();
+				mymap2.put("Parent_Account",getmyid);
+				lastupdate = zoho.crm.updateRecord("Accounts",getaccid,mymap2);
+			}
+		}
+		else
+		{
+			info " id ";
+			getaccid = accountsearchcpny.getjson("id");
+			info getaccid;
+			mylastmap = Map();
+			mylastmap.put("Account_Name",getaccid);
+			lasupdate = zoho.crm.updateRecord("Contacts",getcontactid,mylastmap);
+			info lasupdate;
+		}
+		lastconvertmap = Map();
+		lastconvertmap.put("Contact_ID",getcontactid);
+		lastconvertmap.put("Account_ID",getaccid);
+		Contactupdate = zoho.crm.updateRecord("Season_Launch",id,lastconvertmap);
+		info Contactupdate;
+	}
+}
