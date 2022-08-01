@@ -1,0 +1,36 @@
+authmap = Map();
+//authmap.put("code","1000.978f8e2ecc49184c4b5cca5571f62e24.4fca793890c550a818096e476d5feae9");
+authmap.put("client_id","1000.TTBCZAWKXWNVXVB29NOV39BXNVPG5S");
+authmap.put("client_secret","64332bf13b3dd213a20099d4f6d89bc7bc49f9831c");
+authmap.put("redirect_uri","https://mailchimp.com/");
+authmap.put("grant_type","refresh_token");
+authmap.put("refresh_token","1000.da9d1dcd0567e6a3f4cbeda6c0f736e5.1ecfcbb21e468ae30154039792452f42");
+result = invokeurl
+[
+	url :"https://accounts.zoho.com/oauth/v2/token"
+	type :POST
+	parameters:authmap
+];
+info result;
+access_token = result.get("access_token");
+// access_token = "1000.9a3b0f0f36842c6e533d8ade2ba12016.df3abf2eafbe78a266eda71329b3e308";
+authmap1 = Map();
+authmap1.put("Authorization","Zoho-oauthtoken " + access_token);
+testdata = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/settings/taxes?organization_id=724571659"
+	type :GET
+	headers:authmap1
+];
+data_taxes = testdata.get("taxes");
+for each  i in data_taxes
+{
+	tax_name = i.get("tax_name");
+	if(tax_name == "ON")
+	{
+		tax_id = i.get("tax_id");
+		info tax_id;
+		tax_percentage = i.get("tax_percentage");
+		info tax_percentage;
+	}
+}
