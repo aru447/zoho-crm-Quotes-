@@ -1,0 +1,50 @@
+getdata = zoho.crm.getRecordById("Quotes",quoteid);
+//info getdata;
+quote_type = getdata.get("Quote_Types");
+value_quote_type = getdata.get("Quote_Types");
+if(quote_type == "Rinox Architects" || quote_type == "Rinox B2B (regular quotes)")
+{
+	quote_type = "Rinox";
+}
+else if(quote_type == "Aquarino Ottawa" || quote_type == "Aquarino B2B")
+{
+	quote_type = "Aquarino";
+}
+info quote_type;
+owner_email = getdata.get("Owner").get("email");
+prod_detail = getdata.getJSON("Product_Details");
+refrence_number = getdata.getJSON("Allocation_Number");
+//info prod_detail;
+for each  data in prod_detail
+{
+	productid = data.get("product").get("id");
+	info productid;
+	product_name = data.get("product").get("name");
+	getpdetail = zoho.crm.getRecordById("Products",productid);
+	//	info getpdetail;
+	inv_organization = getpdetail.get("Inventory_Organization");
+	info inv_organization;
+	if(quote_type != inv_organization)
+	{
+		info "wrong";
+		sendmail
+		[
+			from :"info@rinox.com"
+			to :owner_email
+			cc:"prachi.agarwal@crm-masters.com"
+			subject :"Irrelevant products chosen / Produits incorrects choisis "
+			message :"<div>Please note that you have chosen products that were not relevant to your quote type " + value_quote_type + ".  Please edit your quote as they will not appear in your printed / sent versions</div><div>Quote Allocation Number  :" + refrence_number + "</div><div>Product Name  " + product_name + "</div><div><a href=https://crm.zoho.com/crm/org717238760/tab/Quotes/" + quoteid + ">Click here to access your quote</a></div><br><br><div>SVP noter que vous ave choisi des produits incorrects pour votre Quote Type " + value_quote_type + ".SVP modifiez votre devis</div><div>Numero de devis: " + refrence_number + "</div><div>Nom du produit:" + product_name + "<div><a href=https://crm.zoho.com/crm/org717238760/tab/Quotes/" + quoteid + ">Cliquez ici pour accéder votre devis</a></div>"
+		]
+	}
+	else
+	{
+		info "right";
+		sendmail
+		[
+			from :"info@rinox.com"
+			to :"prachi.agarwal@crm-masters.com"
+			subject :"Choose right product"
+			message :"right product"
+		]
+	}
+}
