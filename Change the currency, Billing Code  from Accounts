@@ -1,0 +1,21 @@
+quotedata = zoho.crm.getRecordById("Quotes",quoteid);
+// info quotedata ;
+Quote_Currency = quotedata.getJSON("Currency");
+account_id = quotedata.get("Account_Name").get("id");
+aacount_data = zoho.crm.getRecordById("Accounts",account_id);
+account_currency = aacount_data.get("Currency");
+Billing_Zip_Code = ifnull(aacount_data.get("Billing_Zip_Code"),"");
+info account_currency;
+if(account_currency == Quote_Currency)
+{
+	info "not update";
+}
+else
+{
+	info "update";
+	updateCurrency = Map();
+	updateCurrency.put("Currency",account_currency);
+	updateCurrency.put("Billing_Zip_postal_code",Billing_Zip_Code);
+	update_data = zoho.crm.updateRecord("Quotes",quoteid,updateCurrency);
+	info update_data;
+}
