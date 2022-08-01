@@ -1,0 +1,26 @@
+getquotedata = zoho.crm.getRecordById("Quotes",quoteid);
+//info getquotedata;
+quotestypes = getquotedata.get("Quote_Types");
+deposit_amount = getquotedata.get("Deposit");
+// info deposit_amount;
+if(quotestypes == "Aquarino B2B")
+{
+	grand_total = getquotedata.get("Grand_Total");
+	info grand_total;
+	updateDepositMapAquarino_B2B = Map();
+	updateDepositMapAquarino_B2B.put("Deposit","2500");
+	updatequote = zoho.crm.updateRecord("Quotes",quoteid,updateDepositMapAquarino_B2B);
+	info updatequote;
+}
+else
+{
+	info " update  Aquarino and utawa";
+	grand_total = getquotedata.get("Grand_Total");
+	info grand_total;
+	calculate_deposite = grand_total * 10 / 100;
+	info calculate_deposite;
+	updateDepositMap = Map();
+	updateDepositMap.put("Deposit",calculate_deposite);
+	updatequote1 = zoho.crm.updateRecord("Quotes",quoteid,updateDepositMap);
+	info updatequote1;
+}
